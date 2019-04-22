@@ -1,0 +1,50 @@
+\begin{tikzpicture}
+  \begin{axis}[%
+      ,every axis plot/.append style={thick}
+      ,width=0.33\textwidth
+      ,height=0.2\textwidth
+      ,xlabel={$\delta$} % do not put text in $$
+      ,xlabel style={at=(current axis.right of origin), anchor=west}
+      ,ylabel={$M_{\delta}(I(.))$}
+      % ,title={Pokec dataset}
+      ,legend style={draw=black}
+      % ,legend to name=grouplegend
+      ,legend pos=south west
+      ,legend style={draw=none}
+  ]
+
+  \addlegendentry{\footnotesize{\infprobheu}}
+  \addplot [black, dashed, mark=x]
+    table [x index=0, y index=1] {data/muldel_pk.dat};
+  \addplot [black, dashed, mark=x, forget plot]
+    table [x index=0, y index=2] {data/muldel_pk.dat};
+  \addplot [black, dashed, mark=x, forget plot]
+    table [x index=0, y index=3] {data/muldel_pk.dat};
+
+  \addlegendentry{\footnotesize{\multicritalgo}}
+  \addplot [black, dotted, mark=o]
+    table [x index=0, y index=4] {data/muldel_pk.dat};
+  \addplot [black, dotted, mark=o]
+    table [x index=0, y index=5] {data/muldel_pk.dat};
+  \addplot [black, dotted, mark=o]
+    table [x index=0, y index=6] {data/muldel_pk.dat};
+
+  % \nextgroupplot[
+  %   ,title={Pokec dataset}
+  % ]
+  % \addplot [black, dashed, mark=x]
+  %   table [x index=0, y index=1] {data/muldel_pk.dat};
+  % \addplot [black, dashed, mark=x]
+  %   table [x index=0, y index=2] {data/muldel_pk.dat};
+  % \addplot [black, dashed, mark=x]
+  %   table [x index=0, y index=3] {data/muldel_pk.dat};
+  % \addplot [black, dotted, mark=o]
+  %   table [x index=0, y index=4] {data/muldel_pk.dat};
+  % \addplot [black, dotted, mark=o]
+  %   table [x index=0, y index=5] {data/muldel_pk.dat};
+  % \addplot [black, dotted, mark=o]
+  %   table [x index=0, y index=6] {data/muldel_pk.dat};
+
+  \end{axis}
+\end{tikzpicture}
+

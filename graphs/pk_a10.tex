@@ -1,0 +1,19 @@
+\begin{tikzpicture}
+  \begin{axis}[
+    xlabel={seed set size},
+    ylabel={average influence},
+    xtick={1, 5, 10, 15, 20, 25, 30, 35, 40},
+    width=0.8\columnwidth,
+    height=0.4\columnwidth,
+    grid=none,
+    legend entries={\footnotesize{\infmax},\footnotesize{\infprobheu}, \footnotesize{\multicritalgo}},
+    legend pos = south east,
+  ]
+  \addplot [black, dotted]
+    table [x index=0, y index=1] {data/pk_a10.dat};
+  \addplot [black, dashed]
+    table [x index=0, y index=2] {data/pk_a10.dat};
+  \addplot [black]
+    table [x index=0, y index=3] {data/pk_a10.dat};
+  \end{axis}
+\end{tikzpicture}

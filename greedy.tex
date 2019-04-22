@@ -1,0 +1,404 @@
+%\section{An Algorithm for \infprob{}}
+
+\vspace{-0.1in}
+\section{A Multi-criteria Approximation Algorithm for Computing \infprob{}}
+\label{sec:algo}
+\vspace{-0.05in}
+%\red{Nguyen: I change alpha in bicrit to gamma, to avoid conflict with alpha in sampling. Should bicriteria be  tricriteria? we have: delta, influence, size. Relaxation on delta will be a fix factor of 1/2. So, for influence and size, we can discuss as gamma-beta bicriteria...}
+
+Motivated by the hardness from Lemma \ref{lemma:hardness}, and the non-submodularity of $\mdelta$, we consider a multi-criteria approximation algorithm, which relaxes the seed set size $k$, as well as the probability parameter $\delta$.
+%Observe that in algorithm 2, we perform a full binary search to find $M_{\delta}$ whenever we want to add the next element into $S$, and due to non-submodularity, we cannot reason about the quality of the resulted $S$. In this section, we try to analyse the quality of the approximation, by another approach. There are two main ideas: convert the problem into a series of bicriteria approximation, and introduce a submodular measurement.
+Specifically, we consider the following variant of the $\mdelta$ problem: find $S$ such that $\mdelta \geq \gamma a $ and $|S| \leq \beta k$, where $a$ corresponds to the influence size for the optimal solution, and $\gamma < 1, \beta > 1$ are the relaxation parameters. The quantity $a$ will be determined through the binary search.
+%(as done in the Monte-Carlo sampling algorithm \ref{alg:1}.
+
+%To efficiently find a feasible $S$, we need to define a submodular measurement, which later converts back into $M_{\delta}$. We will construct an algorithm that finds an approximation solution $\hat S$ satisfying the following bicriteria:
+%\begin{equation}
+%\begin{aligned}
+%  M_{\delta/2}(I(\hat S)) \geq \frac{1}{2} M_{\delta}(I(S^*)) = \frac{1}{2}c^* \\
+ % \text{and} \qquad |S| \leq O(\ln c^*) k
+%\end{aligned}
+%\end{equation}
+
+We use ideas from the result of Krause et al.~\cite{krause:jmlr08} on minimum cost submodular cover problem; our problem has crucial differences, because of which we cannot directly use their algorithm. Assume we have $N$ samples $G_1,\ldots, G_N$, where $G_i=(V, E_i)$ is the $i$th sample, obtained by the \textit{triggering set} technique (we discuss bounds on $N$ later in Theorem \ref{theorem:mulcritguarantee}). Let $F_i(S)$ denote the total influence due to
+$S$ in sample $i$ -- this equals the sum of the component sizes containing $S$. Define
+$
+F_{i, \lambda}(S) = \min\{F_i(S), \lambda\}.
+$
+
+The probabilistic guarantee in $\mdelta$ requires finding $S$ that ensures that $|\{i: F_{i, \lambda}(S)\geq \lambda\}|\geq\delta N$. However, it is quite challenging to find a set $S$ with such a property in an incremental manner: a node $v$ might increase $F_{i, \lambda}(S)$ only in some samples $i$. Thus, it is not clear how to pick nodes each time that ensure influence in many samples is high, eventually. Instead, we will consider the average defined as
+\[
+F_{\lambda}(S) = \frac{1}{N}\sum_i F_{i, \lambda}(S).
+\]
+A critical observation is that $F_{i, \lambda}(\cdot)$ and thus $F_{\lambda}(\cdot)$ are submodular \cite{fujito2000approximation}.
+Hence, greedy approach to maximize $F_{\lambda}(\cdot)$ will give a guaranteed approximation.
+We show that maximizing $F_{\lambda}(S)$ is good enough due to the following property.
+%We follow the general approach of Krause et al.~\cite{krause:jmlr08}, who study the following problem: given submodular functions $F_1,\ldots,F_N$, and a parameter $k$, find $S\subseteq V$ such that
+%\[
+%\max_{c, S, |S|\leq k} F_i(S)\geq c, \mbox{ for all $i$}
+%\]
+% Krause et al. reduce this to the minimum cost submodular cover problem, which involves finding a subset $S\subseteq V$ such that $F(S)=F(V)$ and $\mbox{cost}(S)$ is minimized, where $F$ is a submodular function. Our problem leads to a variant of the submodular cover problem, where the goal is to find $S$ of the minimum cost, such that $F(S)\geq C$, where $C$ is a parameter, which might be smaller than $F(V)$.
+
+\begin{lemma}
+\label{lemma:Flambda}
+If $|\{i\mbox{ such that }F_{i,\lambda}(S)\geq \lambda\}|\geq \delta N$, then $F_{\lambda}(S)
+\geq \delta\lambda$. On the other hand, if $F_{\lambda}(S)\geq \delta\lambda$, then
+$|\{i\mbox{ such that }F_{i,\lambda}(S)\geq \delta\lambda/2\}|\geq \delta N/2$.
+\end{lemma}
+
+%\begin{lemma}
+%If  $|\{i\mbox{ s.t. } F_{i,\lambda}(S)\geq \lambda'\}|\geq \delta N$, then $F_{\lambda}(S) \geq \delta\lambda'$.
+%\end{lemma}
+
+Lemma \ref{lemma:Flambda} motivates the following strategy to solve the $\mdelta$ problem, which is a variant of the minimum cost submodular cover problem \cite{fujishige}: find $S$ such that $F_{\lambda}(S)\geq \delta\lambda$ and $\text{cost}(S)=\sum_{j\in S} w_j$ is minimized. Note that the standard submodular cover problem requires $F(S)=F(V)$, where $V$ is the ground set.
+
+%%\red{Gopal: change bicriteria to multi-criteria throughout, including the pseudocode.}
+
+\smallskip
+
+\noindent\textbf{Fast implementation of algorithm \multicritalgo{}.} The pseudocode is shown in Algorithm \ref{alg:3}. It uses binary search as follows. With a given $\lambda$, an iteration decides if it is feasible to construct $S$ such that $F_{\lambda}(S)=C=\delta \lambda$, with a $\log$ factor constraint on size of $S$. If it is the case, $\lambda$ is a feasible value, and $S$ is a feasible solution for $max F_{\lambda}(\cdot)$ problem. Starting with $\lambda=n/2$, the binary search increases or decreases $\lambda$ as per the feasibility. The output is a feasible value and the respective set. Theorem~\ref{theorem:submodcover} shows the approximation guarantee of this algorithm.
+
+\begin{algorithm}[t]
+\footnotesize
+\caption{$k$-Influence set by \multicritalgo{}}
+\label{alg:3}
+\begin{algorithmic}[1]
+  \Function{\multicritalgo{}}{$G(V,E),k,\delta,n, N$}
+  \State $l \gets 1$
+  \State $h \gets n$
+  \For{$step \gets [1 \dots \log n]$}
+    \State $S \gets \emptyset$
+    \State $\lambda \gets (l+h)/2$
+    \State $C \gets \delta\lambda$, and $F(S) \gets F_{\lambda}(S)$
+      \While {$F(S) < C$}
+          \State Pick node $j$ that minimizes $\frac{w_j}{F(S\cup\{j\}) - F(S)}$
+        \State $S \gets S \cup \{j\}$
+      \EndWhile
+    \State feasible if $|S| \le k\ln(N \lambda)$ : $l \gets \lambda$
+    \State infeasible if $|S| > k\ln(N\lambda)$: $h \gets \lambda$
+  \EndFor
+  \Return $S$
+  \EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+Let $S^*, \lambda^*=\mbox{argmax}_{S, \lambda} |\{i\mbox{ such that }F_{i,\lambda}(S)\geq \lambda\}|\geq \delta N$, where the maximization is over sets $S$ of size at most $k$.
+
+\begin{theorem}
+\label{theorem:submodcover}
+Let $S^*$ be an optimum solution, as defined above.
+The set $S$ computed by  Algorithm~\ref{alg:3} satisfies: (1) $F_{\lambda}(S)\geq \lambda^*\delta$ and (2) $|S| = O(\ln{N\lambda})k$, where $k=|S^*|$.
+\end{theorem}
+
+Our proof of Theorem \ref{theorem:submodcover} is a variation of the proof by Wolsey
+\cite{wolsey:combinatorica82}, but has a crucial difference from minimum submodular cover, in that $F(S)$ need not equal to $F(V)$. 
+%We will follow the notation and structure of the proof by
+%Mestre\cite{mestre}.
+Let $\rho_j(S) = F(S\cup\{j\}) - F(S)$. First observe that the following IP
+is feasible:
+$\mbox{(IP) } \min  \sum_j w_j x_j \mbox{ such that}$ for all $S\subseteq V$, with
+$x_j \in \{0, 1\}$ we have
+$\sum_{j\not\in S} \rho_j(S) x_j \geq C - F(S)$.
+
+
+% \begin{eqnarray*}
+% \mbox{(IP) } \min && \sum_j w_j x_j \mbox{ such that}\\
+% \sum_{j\not\in S} \rho_j(S) x_j &\geq& C - F(S), \mbox{ for all $S\subseteq V$}\\
+% x_j &\in& \{0, 1\}
+% \end{eqnarray*}
+
+\begin{lemma}
+\label{lem:ipfeasible}
+The program (IP) is valid, i.e., the optimum solution $S_{IP}$ satisfies $F(S_{IP}) \geq C$
+and $S_{IP}$ has the minimum cost.
+\end{lemma}
+%
+The dual program of the linear relaxation of (IP) is the following
+%
+\begin{eqnarray*}
+\mbox{(D) } \max && \sum_S (C-F(S)) y_S \quad \mbox{such that}\\
+\sum_{S: j\not\in S} \rho_j(S) y_S &\leq& w_j \mbox{ for all $j$}\\
+y_S &\geq& 0
+\end{eqnarray*}
+
+Observe that the algorithm actually picks element $j$ which minimizes $\frac{w_j}{\rho_j(S)}$.
+We construct an approximate dual solution. Suppose the greedy algorithm picks
+elements $\{j_1,\ldots, j_{\ell}\}$. Let $S_i = \{j_1,\ldots, j_i\}$. Define
+\[
+\theta_i =
+\begin{cases}
+\frac{w_{j_i}}{F(S_i) - F(S_{i-1})} = \frac{w_{j_i}}{\rho_{j_i}(S_{i-1})}, \mbox{ for $i<\ell$,}\\
+\frac{w_{j_{\ell}}}{C - F(S_{i-1})}, \mbox{ for $i=\ell$.}
+\end{cases}
+\]
+
+Define
+\[
+y_S =
+\begin{cases}
+\theta_1, \mbox{ if $S=S_0=\emptyset$,}\\
+\theta_{i+1} - \theta_i, \mbox{ if $S=S_i$ for $0<i<\ell$,}\\
+0, \mbox{ otherwise.}
+\end{cases}
+\]
+
+Observe that the dual solution $y_{S_i}$ covers the cost of the solution $S_{\ell}$:
+\begin{eqnarray*}
+&&\sum_S (C-F(S))y_S = \sum_{i=0}^{\ell-1} (C-F(S_i))y_{S_i}\\
+&=& \sum_{i=0}^{\ell-1} (C-F(S_i))(\theta_{i+1}-\theta_i)\\
+&=& \sum_{i=1}^{\ell-1}\theta_i(F(S_{i}) - F(S_{i-1})) + \theta_{\ell}(C-F(S_{\ell-1})) \\
+&=& \sum_{i=1}^{\ell-1} w_{j_i} + w_{j_{\ell}} = \text{cost}(S_{\ell}).
+\end{eqnarray*}
+
+Next, we observe that the dual constraints are approximately feasible. First, consider any
+$j\in V - S_{\ell}$. We have
+
+\begin{eqnarray*}
+\sum_{S: j\not\in S} \rho_j(S)y_S &=& \sum_{i=0}^{\ell} \rho_j(S_i) y_{S_i} \\
+&=& \rho_j(S_0)\theta_1 + \sum_{i=1}^{\ell-1} \rho_j(S_i)(\theta_{i+1}-\theta_i)\\
+&=& \sum_{i=1}^{\ell-1} \theta_i(\rho_j(S_{i-1})) + \theta_{\ell}\rho_j(S_{\ell-1}) \\
+&\leq& \sum_{i=1}^{\ell-1} w_j \frac{\rho_j(S_{i-1}) - \rho_j(S_i)}{\rho_j(S_{i-1})} + w_j,
+\end{eqnarray*}
+because $\theta_i\leq \frac{w_j}{\rho_j(S_{i-1})}$ by construction, for each $i\leq\ell$.
+
+For $x\in(0, \rho_j(\emptyset))$, define
+$h(x) = \frac{1}{\rho_j(S_{i-1})}$, if $\rho_j(S_i) < x \leq \rho_j(S_{i-1})$. Let
+\[
+\delta = \min_{S: \rho_j(S)>0} \rho_j(S) = \min_{S:\rho_j(S)>0} F(S+j) - F(S) \geq \frac{1}{N}.
+\]
+%
+Therefore,
+\begin{eqnarray*}
+&&\sum_{i=1}^{\ell-1} \frac{\rho_j(S_{i-1}) - \rho_j(S_i)}{\rho_j(S_{i-1})} = \int_0^{\rho_j(\emptyset)} h(x) dx \\
+&\leq& \int_0^{\delta}\frac{1}{\delta} dx + \int_{\delta}^{\rho_j(\emptyset)} \frac{1}{x} dx
+= 1 + \ln \frac{\rho_j(\emptyset)}{\delta}
+\leq 1 + \ln (N\lambda),
+\end{eqnarray*}
+since $\rho_j(\emptyset)\leq F(j) \leq \lambda$.
+This implies
+\[
+\sum_{S: j\not\in S}\rho_j(S) y_S \leq (2+\ln{N\lambda}) w_j.
+\]
+
+Next, suppose $j\in S_r$ for some $r$. Then, $\rho_j(S_{r})= F(S_{r+1}) - F(S_r)=0$. Let $r'<r$ be
+the largest index such that $\rho_j(S_{r'})>0$. In that case, the dual constraint for $j$ can be
+written as
+\begin{eqnarray*}
+\sum_{S: j\not\in S} \rho_j(S)y_S = \sum_{i=0}^{r'} \rho_j(S_i) y_{S_i}
+= \sum_{i=1}^{r'+1} \theta_i(\rho_j(S_{i-1}) - \rho_j(S_i))\\
+\leq \sum_{i=1}^{r'+1} w_j \frac{\rho_j(S_{i-1}) - \rho_j(S_i)}{\rho_j(S_{i-1})}
+\leq 1+\ln{N\lambda},
+\end{eqnarray*}
+as before. Therefore, $\frac{1}{\alpha}y$ is a feasible solution, for $\alpha = 2+\ln{N\lambda}$, which  completes the proof for Theorem
+\ref{theorem:submodcover}.
+$\Box$
+
+Finally, we combine this with the right number of samples (applying Theorem \ref{thr:numsmpls} using $\Theta(n)$ samples), and put everything together to obtain the following theorem.
+
+\begin{theorem}
+\label{theorem:mulcritguarantee}
+Let $S^*$ denote the optimum solution to the \infprob{} problem.
+Let $N=\Theta(\frac{c}{\epsilon^2\delta}n)$ samples, for a constant $c$. Then,  \multicritalgo{} gives a solution $S$ such that $M_{\delta/2}(I(S)) \geq \frac{(1-\epsilon)\delta}{2} M_{\delta}(I(S^*)$.
+\end{theorem}
+The factor $1/2$ for $\delta$ in the approximation solution comes from Lemma \ref{lemma:Flambda}.
+Note that we need $\Theta(n)$ samples so that all subsets (there can be exponential number of them)
+are accurately sampled with high probability by a union bound (applying Theorem \ref{thr:numsmpls}).
+However,  our experimental results show that, in practice, we need substantially less number of samples  ---
+$\Theta(\log n)$ --
+to guarantee a good approximation.
+
+% \begin{proof}
+% Consider any set $S$, and let $\lambda=\mdelta$. Then, $\Pr[F_{i, \lambda}(S)\geq \lambda] =\delta$. By standard concentration using Chernoff bounds, $\Pr[F_{\lambda}(S)<(1-\epsilon)\lambda]\leq e^{-2n}$. Therefore, for all sets $S$, we have $F_{\lambda}(S)\geq(1-\epsilon)\lambda$ with probability at least $1-d^{-n}$, for a constant $d$.
+
+% Let $\lambda^*$
+% \end{proof}
+
+% \noindent
+% \textbf{Number of samples.}
+% Let $S^*$ denote the optimal solution, let $c^* = M_{\delta}(I(S^*))$ denote the optimal value. Let
+% \[
+% F^N_{\lambda}(S) = \frac{1}{N}\sum_i F_{i, \lambda}(S).
+% \]
+
+% What we need to show
+% \begin{itemize}
+%     \item
+% If $N=\Omega(\frac{c}{\epsilon^2\delta}n)$, then $F_{\lambda}^N(S)$ is within a $(1\pm\epsilon)$ factor of $\mdelta$, for each set $S$
+% \item
+% Let $S$ be the solution returned by \multicritalgo{}. Then, $F_{\lambda}^N(S) \geq \delta F_{\lambda}^N(S^*)/2$
+% \item
+% With high probability, we have $F_{\lambda}^N(S)\in(1\pm\epsilon)\mdelta)$ and $F_{\lambda}^N(S^*)\in (1\pm\epsilon)c^*$.
+% \item
+% Therefore, $\mdelta \in (1\pm 2\epsilon)\delta c^*/2$
+% \end{itemize}
+
+% To avoid cluttering details, let's first assume that the number of samples $N$ is large enough such that $M_{\delta}(I(\cdot))$ can be estimated with precise $\delta$. Condition on that, we have the following corollaries.
+% \begin{corollary}
+%   If $F_{\lambda}(S) \geq \delta \lambda$ then:
+%   $M_{\delta/2}(I(S)) \geq \frac{1}{2}\delta \lambda$.
+% \begin{proof}
+%   Apply the ``only-if'' part of \red{Lemma 5.2}. $\blacksquare$
+% \end{proof}
+% \end{corollary}
+
+% \begin{corollary}
+%   In Algorithm \ref{alg:3}, if $\lambda < c^*$, then $\lambda$ is feasible.
+% \begin{proof}
+%   Since $F^N_{\lambda}(S^*) > \delta \lambda$, the while loop, with relax on $|S|$ by \red{Theo 5.2}, will successfully construct $S$ with $F^N_{\lambda}(S)=\delta \lambda$. $\blacksquare$
+% \end{proof}
+% \end{corollary}
+
+% \begin{corollary}
+%   If Algorithm \ref{alg:3} returns a feasible value $\lambda^{fsb}$ then $\lambda^{fsb} \geq c^*/2}$.
+% \begin{proof}
+%   If $\lambda^{fsb} > n/2$: Trivially holds.
+%   If $\lambda^{fsb} < n/2$: By the binary search, $2\lambda^{fsb}$ must be infeasible. Which, by contraposition of \red{Cor 5.2}, implies $c^* < 2 \lambda^{fsb}$. $\blacksquare$.
+% \end{proof}
+% \end{corollary}
+
+% \begin{corollary}
+%   Algorithm \ref{alg:3} gives a set S such that:
+%   \[
+% F^N_{\lambda}(S) \geq \delta c^* /2
+% \]
+% \begin{proof}
+%   Since $I(S)$ is in the range $[1,n]$, Algorithm \ref{alg:3} will always return some feasible value $\lambda$ and the corresponding set $S$. We have: $F^N_{\lambda}(S^*) \geq \delta \lambda$. By \red{Cor 5.3}, the proof is completed. $\blacksquare$
+% \end{proof}
+% \end{corollary}
+
+% \begin{theorem}
+%   Using $O(\eta^{-2} \log^2 n )$ samples, with high probability of success, \bicritalgo{} outputs a seed set
+%   $S$, with $|S| = O(\log^2 n)|S^*|$ and the following guarantee approximation:
+%   \[
+%   M_{\frac{\delta - 3\eta}{2}}(I(S)) \geq \frac{1}{4}(\delta - \eta)c^*
+%   \]
+% \begin{proof}
+%   Assuming that $M_\delta(I(\cdot))$ is estimated with a slack of $\eta$ around $\delta$. Since we design our sampling with absolute error $\eta$, this slack also holds for any value of $\delta$.
+
+%   Adjust \red{Cor 5.4} with $\eta$:
+%   $F^N_{\lambda}(S) \geq (\delta - \eta) c^* /2$. Then apply \red{Cor 5.1} with adjustment, we have:
+%   \[
+%   M_{\frac{\delta - 3\eta}{2}}(I(S)) \geq \frac{1}{4}(\delta - \eta)c^*
+%   \]
+%   \bicritalgo{} takes $\log n$ iteration. In each iteration, it incrementally constructs a set of size $O(\ln(N\lambda)k$. Assume that $N = o(n)$, and since $\lambda < n$, the set size is: $O(ln(n))$.
+%   Using \red{lemma 4.2}, let $\alpha=(n^2 \ln n)^{-1}$. The set is constructed incrementally, by the argument similar to the proof of \red{Theo 5.1}, union bound of failure for one iteration is:
+%   $\alpha n \ln(n)$ and union bound of failure for $\log n$ iteration is $\frac{1}{n}$.
+%   Using \red{lemma 4.2}, plugin $\alpha$ to have $N=O(\eta^{-2}\log n \ln(n^2 \ln n)) = O(\eta^{-2}\log^2 n)$. This satisfies the assumption that $N=o(n)$. $\blacksquare$
+% \end{proof}
+% \end{theorem}
+
+% We observe that the value of the dual solution is equal to the cost of the primal solution computed using greedy:
+% \begin{eqnarray*}
+% \sum_S (C-F(S))y_S &=& \sum_{i=0}^T (C-F(S_i)) y_{S_i}\\
+% \end{eqnarray*}
+% \section{Max-min version of Influence Maximization}
+% This is a max-min version of the Influence maximization problem, which is an expectation version. Both are used in the stochastic optimization literature. The max-min version corresponds to $\delta=1$ of the problem, and is also interesting.
+% Let $G_i=(V, E_i)$, $i=1,\ldots, N=\Theta(n^2)$, be random samples from a graph $G=(V, E)$,
+% where each edge $e\in E$ is sampled with probability $p(e)$.
+% Let $x(v)$ be an indicator variable which is $1$ if vertex $v$ is picked in the seed set.
+% Let $\mathcal{C}(i)$ be the set of connected components in $G_i$. For component
+% $C\in\mathcal{C}(i)$, let $y(C)$ be an indicator variable which is $1$ if
+% some vertex from $C$ is in the seed set, i.e., if $C\cap S\neq\emptyset$.
+% Let $I(S, i)=\cup_{C\in \mathcal{C}(i)} |C|y(C)$ be the influence set size in the sample $G_i$.
+% Let $I(S) = \max_i I(S, i)$ be the maximum influence over all samples.
+% We have the following linear program.
+% \begin{eqnarray*}
+% \max && \lambda \mbox{ such that}\\
+% \sum_{C\in \mathcal{C}(i)} |C|y(C)  &\geq& \lambda, \mbox{ for all $i$}\\
+% y(C) &\leq& \sum_{v\in C} x(v),\ \forall\mbox{$i$, $C\in \mathcal{C}(i)$}\\
+% \sum_v x(v) &\leq& k\\
+% x, y &\in& [0, 1]^n
+% \end{eqnarray*}
+% \begin{eqnarray*}
+% \sum z(i) &\geq& \delta N\\
+% \sum_{C\in \mathcal{C}(i)} |C|y(C)  &\geq& \lambda z(i), \mbox{ for all $i$}\\
+% y(C) &\leq& \sum_{v\in C} x(v),\ \forall\mbox{$i$, $C\in \mathcal{C}(i)$}\\
+% \sum_v x(v) &\leq& k\\
+% x, y &\in& [0, 1]^n
+% \end{eqnarray*}
+
+% Rounding: choose $k$ nodes, each with probability $x(v)/k$\\
+% Prob comp $C$ in sample $i$ is covered $\geq (1-1/e)y(C)$
+
+% We select a set $S$ of size $\ell$, by picking a random vertex $v\in V$ with probability $x(v)/k$
+% each time, with replacement. Let $OPT(k)$ denote the influence resulting from the
+% optimum solution using a seed set of size $k$.
+
+% \begin{lemma}
+% Let $S$ be the seed set chosen by randomized rounding. Then, choosing
+% $|S|=\ell=\frac{ckn\log{n}}{\epsilon^2OPT(k)}$ ensures that $I(S)\geq (1-\epsilon)(1-1/e)OPT(k)$.
+% \end{lemma}
+% \begin{proof} (Sketch)
+% We split $S$ into $\ell/k$ sets $S_1,S_2,\ldots,S_{\ell/k}$ of size $k$ each.
+% Consider a component $C\in\mathcal{C}(i)$.
+% A vertex $v$, chosen randomly with probability $x(v)/k$, is in $C$ with probability
+% $\sum_{v\in C} x(v)/k\geq y(C)/k$. Therefore, the probability that a randomly chosen
+% vertex does not hit $C$ is at most $1-y(C)/k$. This implies the probability that
+% no vertex in $S_j$ hits $C$ is at most $(1-y(C)/k)^k$. Therefore,
+% \[
+% \Pr[C\cap S_j\neq\emptyset] \geq 1 - (1-y(C)/k)^k \geq (1-1/e)y(C)
+% \]
+
+% This implies
+% \[
+% E[I(S_j, i)] \geq (1-1/e)\sum_{C\in\mathcal{C}(i)} |C|y(C) \geq (1-1/e)\lambda \geq (1-1/e)OPT(k)
+% \]
+
+% By Hoeffding's, we have
+% \[
+% \Pr[I(S_j, i) \leq (1-\epsilon)(1-1/e)OPT(k)] \leq 2exp(-\frac{\epsilon^2(1-1/e)OPT(k)}{2n})
+% \]
+
+% Therefore, we have
+% \[
+% \Pr[\mbox{for all $j\leq\ell/k$, }I(S_j, i) \leq (1-\epsilon)(1-1/e)OPT(k)] \leq 2exp(-\frac{\epsilon^2(1-1/e)OPT(k)\ell}{2n})
+% \]
+% This implies if $\ell=\Omega(\frac{n\log{n}}{\epsilon^2 OPT(k)})$, with probability
+% at least $1-1/n^3$, we have
+% $I(S=\cup_j S_j, i) \geq (1-\epsilon)(1-1/e)OPT(k)$. This implies
+% $I(S) \geq (1-\epsilon)(1-1/e)OPT(k)$, with probability at least $1-1/n$.
+% \end{proof}
+
+% \noindent
+% \textbf{Remark.} The above statement is useful only if $OPT(k)$ is large, i.e., $OPT(k)=\Omega(n)$, in which case it suffices to select $O(k\log{n})$ seeds. In general, maybe we will need to select sub-linear number of seeds.
+
+
+
+% \subsection{Using Lucier's algorithm}
+
+% We follow the notation from Lucier et al. \cite{lucier:kdd15}, with small modifications. For any vertex $i$, define
+% \[
+% \pi(i) = \sum_{t\in\{1, (1+\epsilon),\ldots\}} \frac{\epsilon}{1+\epsilon} t\Pr[I(i)> t]
+% \]
+
+% Define $\pi_t(i)=\Pr[I(i)>t]$ and $\pi_t(i, L)$ as the fraction of $L$ samples, in which the influence from $i$ is at least $t$.
+
+% \begin{algorithm}
+% \caption{InfEst}
+% \label{alg:infest}
+% \begin{algorithmic}[1]
+%   \Function{InfEst}{$G(V,E)$}
+%   \State $S \gets V$
+%   \For{$\tau\in\{n, n/(1+\epsilon),\ldots,1\}$}
+%     \For{$t\in\{\tau, (1+\epsilon)\tau,\ldots,n\}$}
+%       \State Generate $L_t=\frac{8t\log^3{n}}{\tau\epsilon^2}$ random edge subgraphs
+%       \State Each node $i\in S$ computes $\pi_t(i, L_t)$ in parallel
+%     \EndFor
+%     \State Each node $i\in S$ computes $x_i = \sum_t \frac{\epsilon}{1+\epsilon}t\pi_t(i, L)$ in parallel
+%     \If{$i\in S$ and $x_i\geq (1-2\epsilon)\tau$}
+%     \State $S=S-\{i\}$
+%       \State $I(i)=\tau$
+%   \EndIf
+%   \EndFor
+
+%   \State return $\max_i I(i)$
+%   \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
+
+% The following statements follow from \cite{lucier:kdd15}
+% \begin{itemize}
+% \item
+% The solution returned by InfEst$(G)$ is within $O(1)$ factor of the optimum
+% \item
+% Number of times connected components is run?
+% \end{itemize}

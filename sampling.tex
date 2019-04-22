@@ -1,0 +1,150 @@
+\section{Computing $M_{\delta}(I(S))$ for a fixed set $S$}
+\label{sec:sampling}
+
+In this section, we show how to compute $M_{\delta}(I(S))$ for a {\em fixed} set $S$. This is a necessary ingredient in computing the solution to the \infprob{} problem, which
+tries to find the $S$ (of given size $k$) that maximizes $M_{\delta}(I(S))$.  It can be shown  that computing $M_{\delta}(I(S))$ exactly even for a fixed set $S$ is \#P-Hard \cite{zhang:kdd14}. However, we show  that we can estimate  $M_{\delta}(I(S))$ by using Monte-Carlo sampling.
+%\subsection{Hardness of computing $M_{\delta}(I(S))$}
+\subsection{Monte-Carlo approximation of $M_{\delta}(I(S))$}
+To estimate $M_{\delta}(I(S))$, it will be useful to consider the following general problem of estimating
+a random variable that takes values between 0 and 1 (both included). 
+%Our goal is to estimate the {\em probability} that a random variable exceeds a certain value.
+\begin{equation}
+\begin{alignedat}{2}
+  & 0 \leq X \leq 1 && \text{ a random variable} ,\\
+  & 0 < \delta \leq 1 && \text{ a probability threshold} ,\\
+  & \text{find} & \qquad & M_{\delta}(X) = sup\{a | \Pr[X \geq a] \geq \delta \}.
+\end{alignedat}
+\end{equation}
+
+We  define $M_{\delta}(X)$  in a way that is valid for
+both discrete and continuous distributions. Indeed, let $F_{X}$ be the cumulative distribution of
+$X$, if $F_X$ is continuous, we can define: $M_{\delta}(X) = sup\{a | \Pr[X \geq a] = \delta \}$,
+and the solution is given by: $M_{\delta}(X) = F^{-1}_X(1 - \delta)$.
+
+In general, we cannot afford finding the distribution function, thus, we apply a Monte Carlo
+sampling to give an $(\epsilon, \eta)$-approximation of $M_{\delta}(X)$.
+Let $\widetilde{M}_{\delta}(X, \epsilon, \eta)$ be such an approximation, satisfying:
+\begin{equation}
+\label{eq:numr-mdelta}
+  \widetilde M_{\delta}(X, \epsilon, \eta) \geq max \{ a | \Pr(X \geq a) \geq \delta
+    - \eta \} - \epsilon
+\end{equation}
+
+The idea is to perform binary search to find the best value of $a$. Initially, we guess $a = 1/2$,
+then verify if $\Pr(X \geq a) \geq \delta$. If the test is confirmed, we make the next guess as
+$a = 3/4$, otherwise, we guess $a = 1/4$. Continue until the step of the guess smaller than
+$\epsilon$.
+
+The slack $\eta$ in the probability comes from the testing for $\Pr(X \geq a) \geq \delta$. For our
+problem,  we will design a Monte-Carlo sampling algorithm. Consider one iteration, with some fixed $a$,  we have to decide: if $\Pr(X \geq a) \geq
+\delta$, or $\Pr(X \geq a) < \delta$.
+Take $N$ samples $X_1,X_2,\cdots,X_N$, where $N$ will be specified later. Let
+$p = \Pr(X \geq a)$ be the unknown, fixed probability. Define $N$ indicator random variables $Z_i$,
+where $Z_i = 1$ if the sample $X_i \geq a$, $0$ otherwise. Let $Z = \sum_{i=1}^{N}Z_i$. We have
+$\mu_Z=\E[Z] = Np$. Using Chernoff bound\cite{Upfal-book}, we bound the empirical probability $\bar p
+= \frac{Z}{N}$:
+\begin{align*}
+  & \Pr(|Z - Np| \geq \nu Np) \leq 2 exp \left( - \frac{\nu^2}{2+\nu} Np \right) \\
+  \iff &\Pr \left( |\bar p - p| \geq \nu p \right) \leq
+    2 exp \left( - \frac{\nu^2}{2+\nu} Np \right).
+\end{align*}
+
+With the desired  error $\eta = \nu p \iff \nu = \frac{\eta}{p}$, the tail bound becomes:
+\begin{equation}
+  \Pr \left( |\bar p - p| \geq \eta \right) \leq
+    2 exp \left( - \frac{\eta^2}{2p + \eta} N \right)
+  \leq 2 exp \left( - \frac{\eta^2 N}{3} \right).
+\end{equation}
+
+Given $|\bar p - p| \geq \eta$, clearly we have: $\bar p - \eta \geq \delta \implies
+p \geq \delta$, and $\bar p + \eta < \delta \implies p < \delta$. This standard method leaves
+an undecided region when $\bar p - \eta < \delta \leq \bar p + \eta$. To simplify the decision
+rule, we allow some slack around $\delta$, and have the following decision rule:
+\begin{align}
+\begin{aligned} \label{eq:3}
+  & \text{If} \enskip \bar p  \geq \delta && \implies \text{increase} \,\,\,\, a; \\
+  & \text{If} \enskip \bar p < \delta && \implies \text{decrease} \,\,\,\, a.
+\end{aligned}
+\end{align}
+%
+\Cref{alg:1} shows the pseudo code for the above  algorithm. Next, we will show that it gives an (correct)
+ $(\epsilon, \eta)$-approximation of  $M_{\delta}(X)$ (as defined in \ref{eq:numr-mdelta}). Then we will analyze the required number of samples to ensure correctness with high probability.
+%
+\begin{lemma}
+\label{lem:ee-aprox}
+\Cref{alg:1} finds an  $(\epsilon, \eta)$-approximation of  $M_{\delta}(X)$, assuming that all the Monte-Carlo tests are successful.
+\end{lemma}
+\begin{proof}
+%With the assumption, we omit the discussion on number of samples.
+It follows directly from the binary
+search that the final value $a$ is within $\pm \epsilon$ of the maximum of $a$. The decision rules
+in \cref{eq:3} is equivalent to: increase $a$ when $p \geq \delta - \eta$, decrease $a$ when
+$p < \delta + \eta$. This holds for every iteration, thus, $\Pr(X \geq a)$ is guaranteed to be
+at least $\delta - \eta$. $\Box$
+\end{proof}
+%
+In our algorithm, $N$ is the number of samples in each iteration. Suppose we want to compute an
+$(\epsilon, \eta)$-approximation of  $M_{\delta}(X)$ with  high (confidence) probability, we use the following lemma:
+\begin{lemma}
+\label{lem:num-samples}
+\Cref{alg:1} finds an $(\epsilon, \eta)$-approximation of $M_{\delta}(X)$, with probability of success  at least
+$(1 - \alpha \log(1/\epsilon))$ (for some given parameter $\alpha$), using 
+$N_{\mathit{total}} \geq \frac{3}{\eta^2}\ln{\frac{2}{\alpha}} \log{\frac{1}{\epsilon}}$ samples.
+\end{lemma}
+\begin{proof}
+  For each iteration to be successful with probability at least $(1-\alpha)$, we bound the number of
+samples (in one iteration) by Chernoff bound:
+\begin{align} \label{eq:4}
+  2 exp \left( - \frac{N \eta^2}{3} \right) \leq \alpha
+    \iff N \geq \frac{3}{\eta^2}\ln{\frac{2}{\alpha}}.
+\end{align}
+The number of iterations is: $\log(1/\epsilon)$. Using union bound, we have the success probability for
+the entire algorithm: $(1 - \alpha \log(1/\epsilon))$. Hence, given  parameters
+$\delta, \epsilon, \eta, \alpha$,  \Cref{alg:1}   finds
+$\widetilde{M}_\delta(X, \epsilon, \eta)$ with success probability at least $(1 - \alpha \log(1/\epsilon))$, and
+requires at least $N_{\textit{total}} = \frac{3}{\eta^2}\ln{\frac{2}{\alpha}}
+\log{\frac{1}{\epsilon}}$ samples. $\Box$
+\end{proof}
+%
+One may ask why \cref{lem:num-samples} uses confidence of $(1 - \alpha \log(1/\epsilon))$, instead of the canonical form $(1 - \zeta)$ where $\zeta < 0$. Indeed, we choose the representation of $\alpha \log(1/\epsilon)$ to facilitate the analysis when applied to the graph influence problem, which is presented next.
+
+\begin{algorithm}
+  \caption{Approximate ${M_{\delta}(X)}$ with confidence
+            $(1 - \alpha \log(1/\epsilon))$ }
+  \label{alg:1}
+  \begin{algorithmic}[1]
+    \Function{MDelta}{$X[0,1]$, $\delta$, $\epsilon$, $\eta$, $\alpha$}
+    \State $N \gets \frac{3}{\eta^2}\ln{\frac{2}{\alpha}}$
+    \State $l \gets \epsilon$
+    \State $h \gets 1$
+
+    \While {$h - l \geq \epsilon$}
+      \State $\mathit{mid} = (h + l) / 2$
+      \State $X_1,\cdots,X_N \gets \textit{ samples of } X $
+      \State $\bar p = \frac{1}{N}(\# X_i, X_i \geq \mathit{mid})$
+      \If {$\bar p \geq \delta $} $l \gets \mathit{mid}$
+      \Else \enskip $h \gets \mathit{mid}$
+      \EndIf
+    \EndWhile
+    \Return $l$
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
+%\subsection{Estimation of $M_{\delta}(I(S))$}
+\begin{theorem} 
+\label{thr:numsmpls}
+  On a graph of size $n$ nodes,  a given seed set $S$, for  given parameters
+   $\delta$ and $\eta$ (assumed
+  to be small constants)
+  \Cref{alg:1} finds an $(\epsilon, \eta)$-approximation of $M_{\delta}(I(S))$ using $O((\log n)^2)$ samples with success probability
+  $1- \Omega\left(\frac{1}{n}\right)$.
+\end{theorem}
+\begin{proof}
+Consider the choice of parameters when applying \Cref{alg:1} to estimate $I(S)$. Because $1 \leq
+I(S) \leq n$, we normalize $I(S)$ into the range $(0,1]$, and chose $\epsilon = 1/n$.
+For the algorithm to succeed with probability at least $(1 - 1/n)$,
+requires $\alpha = \frac{1}{n \log n}$ (by \cref{lem:num-samples}). 
+ Hence the number of
+samples is:$\frac{3}{\eta^2}\log{n}\ln{\frac{n\log n}{2}} = O(\log^2 n)$.
+$\Box$
+\end{proof}

@@ -1,0 +1,392 @@
+\vspace{-0.1in}
+\section{$\infprob{}$: Some Basic Results}
+\vspace{-0.05in}
+\subsection{Model and Problem Definition}
+\vspace{-0.05in}
+\label{sec:model}
+Consider a graph $G$ with $n$ nodes and $m$ directed edges. This graph models a network of
+influence, where an edge $(u,v)$ has a weight $0 \leq w(u,v) \leq 1$, indicating how likely $u$
+influences $v$. The problem of interest is to analyze how influence is propagated in the network.
+We use the well-studied {\em Independent Cascades (IC) model} with discrete time to model the spread of influence which we explain below
+\cite{kkt-2003}.
+
+At any given time $t$, the nodes have one of three states: \textit{active, newly active, inactive}.
+At time $t$, let $A_t$ be the set of active nodes, $S_t$ be the set of newly active nodes, and the rest
+be inactive. Each node $u \in S_t$ can activate each of its inactive neighbors $v$ with a
+probability $w(u,v)$. Let $U_t$ be the set of  nodes activated in this step. At time
+$t+1$, $A_{t+1} = A_t \cup U_t$, and $S_{t+1} = U_t$. Starting from an initial configuration
+of a {\em seed set} $S = S_0$, we apply the process until time $\tau$ where $U_{\tau} = \varnothing$,
+indicating no new nodes can be activated. We denote $I(S) = \abs{A_{\tau}}$ as the \textit{influence} of the set $S$.
+More generally, we have a weight $wt(v)$ for each node, and $wt(I(S)) = \sum_{v\in A_{\tau}} wt(v)$ is the total weight
+of the influence set $I(S)$. For simplicity, we will focus on the unweighted version of the problem; all our results hold for the weighted version as well, with natural changes in bounds. We note that $I(S)$ is a random variable that depends on $S$ (and the underlying
+diffusion process).
+
+% A fundamental problem that has been very well-studied is to  find the set $S$ of a given size
+% $k$ such that the expected influence --- $\E[I(S)]$ --- is maximized
+% (cf. Section \ref{sec:related}). This is referred to as the \infmax{} problem.
+As mentioned in Section \ref{sec:intro}, the \infmax{} problem, maximizing $E[I(S)]$, is a coarse
+optimization. In particular, it does not give  probabilistic guarantees on the influence
+of the chosen seed set. To get a better idea of $I(S)$, we may need to
+estimate the variance, or even to acquire the distribution
+of $I(\cdot)$.  However, this task is usually quite difficult and costly.
+% It is not clear, for example,
+% how one can efficiently find a seed set that has ``high" expected influence and ``low" variance; such
+% a set may not even exist depending on the requirements.
+
+In this paper, we propose another measure which could be more useful: given
+a threshold  probability $\delta$, find a seed set $S$ such that the $\delta$-quantile value
+of $I(S)$ is maximized. This measure
+% , unlike the expected influence measure,
+gives direct probabilistic
+guarantees on the random variable $I(S)$.\footnote{Note that one can obtain a one-sided probability bound
+from expectation using Markov's inequality; but this usually quite weak.} More formally,
+for some
+set $S$, and a threshold $\delta$, define the following measure:
+
+\begin{equation} \label{eq:M_delta}
+  M_{\delta}(I(S)) = max\{a | \Pr[I(S) \geq a] \geq \delta \}
+\end{equation}
+
+%In essence, this is a pessimistic estimation, which is more robust to outliers.
+\medskip
+The new optimization problem, referred to as \infprob{} is defined in the following manner: given
+an instance $(G=(V, E), k, \delta)$, find a (seed) set $S$ of size $k$ such that $M_{\delta}(I(S))$ is
+maximized.
+\begin{equation}
+\begin{alignedat}{2}
+  & \text{maximize} & \qquad & M_{\delta}(I(S)) \\
+  & \text{subject to} & & \abs{S} = k.
+\end{alignedat}
+\end{equation}
+
+The goal of this paper is to study the above optimization problem and give algorithms for it.
+
+%In a general context, $M_{\delta}(\cdot)$ is a function of a random variable, i.e. $I(S)$.
+%We will consider
+%this general setting then apply for our influence problem. But first, we show some motivation
+%for this pessimistic measurement in the context of influence problem.
+
+\vspace{-0.05in}
+\subsection{Comparison with \infmax{}}
+
+As mentioned, the standard influence maximization problem, \infmax{}, is defined as
+following \cite{v011a004}: given an instance $(G=(V, E), k)$, find a set $S\subseteq V$ of
+size at most $k$ such that $E[I(S)]$ is maximized.
+
+A natural question is whether one could find a solution to the problem of maximizing
+$M_{\delta}(I(S))$, i.e., \infprob{}  by  solving \infmax{}. We show below that,
+in general, the solutions of these two problems can be quite different.
+
+\iffalse
+\begin{lemma}
+There exist instances $(G, k, \delta)$, for which $\frac{M_{\delta}(S^*)}{M_{\delta}(\hat{S})}$ is
+arbitrarily large, where $S^*$ is an optimum solution to the $\infprob$ problem,
+and $\hat{S}$ is an optimum solution to the $\infmax$ problem.
+\end{lemma}
+\fi
+
+\begin{lemma}
+\label{lem:example}
+There exist instances $(G, k, \delta)$, for which $\frac{E[I(S^*)]}{M_{\delta}(I(S^*))}$ is
+arbitrarily large, where $S^*$ is an optimum solution to the $\infmax$ problem.
+\end{lemma}
+
+\iffalse
+\subsection{Sampling methods}
+All works in the influence maximization literature require a basic task: finding the influence of
+a node or a set of nodes by sampling the  diffusion process in the underlying graph. Generally,
+there are two methods of sampling. The first method is to directly simulate the spread of influence
+from a given seed set, based on the model under consideration. This is the most accurate method,
+but  costly in practice. The second method is the \textit{triggering set} technique
+\cite{v011a004}, which is more practical, and is applicable for
+\textit{independent cascades} and \textit{linear threshold} models.
+Below we describe the triggering set technique for sampling.
+
+Let $G(V,E)$ be the underlying graph with the influence probability $w(u,v)$ for the edges $(u,v)
+\in E$. A sample $G_i(V,E_i)$ is a random subgraph of $G$ where $E_i$ is a subset of $E$
+constructed as follows: each edge $(u,v) \in E$ is chosen randomly with probability $w(u,v)$ to be
+included in $E_i$.
+\fi
+
+\iffalse
+let $\mathcal{G}$ be the set of all random graphs generated by activating all edges in $E$ with
+their probabilities. An instance $g$ sampled from $\mathcal{G}$ is considered a sample for
+influence of any nodes in $V$. This holds due to the independence of edge activation. A more
+detailed discussion can be found in their original work.
+\fi
+
+\vspace{-0.05in}
+\subsection{Hardness}
+
+We observe that \infprob{} is NP-hard to approximate within a factor of $(1-1/e)$, which is similar to the hardness of the $\infmax$ problem.
+
+\begin{lemma}
+\label{lemma:hardness}
+It is NP-hard to obtain an approximate solution to the \infprob{} problem, within a factor of $(1-1/e)$.
+\end{lemma}
+
+\vspace{-0.05in}
+\subsection{Computing $M_{\delta}(I(S))$ for A Fixed Set $S$}
+%: Monte-Carlo approximation}
+\label{sec:sampling}
+
+We show how to compute $M_{\delta}(I(S))$ for a {\em fixed} set $S$. This is a necessary ingredient
+in computing the solution to the \infprob{} problem.
+% which tries to find the $S$ (of given size $k$) that maximizes $M_{\delta}(I(S))$
+It is known that computing $M_{\delta}(I(S))$ exactly even for a fixed set $S$ is \#P-Hard \cite{zhang:kdd14}.
+However, we show that we can estimate $M_{\delta}(I(S))$ efficiently
+by using Monte-Carlo sampling and binary search; this is crucial in designing our efficient
+multi-criteria approximation algorithm of Section \ref{sec:algo}.
+The sampling algorithm, \textsc{MDelta(I($\cdot$))}, and its proofs are in the full version of the paper;
+here we just present the final bounds that we need later.
+
+\iffalse
+%\subsection{Hardness of computing $M_{\delta}(I(S))$}
+\subsubsection{Monte-Carlo approximation of $M_{\delta}(I(S))$}
+To estimate $M_{\delta}(I(S))$, it will be useful to consider the following general problem of estimating
+a random variable that takes values between 0 and 1 (both included).
+%Our goal is to estimate the {\em probability} that a random variable exceeds a certain value.
+\begin{equation}
+\begin{alignedat}{2}
+  & 0 \leq X \leq 1 && \text{ a random variable} ,\\
+  & 0 < \delta \leq 1 && \text{ a probability threshold} ,\\
+  & \text{find} & \qquad & M_{\delta}(X) = sup\{a | \Pr[X \geq a] \geq \delta \}.
+\end{alignedat}
+\end{equation}
+
+We  define $M_{\delta}(X)$  in a way that is valid for
+both discrete and continuous distributions. Indeed, let $F_{X}$ be the cumulative distribution of
+$X$, if $F_X$ is continuous, we can define: $M_{\delta}(X) = sup\{a | \Pr[X \geq a] = \delta \}$,
+and the solution is given by: $M_{\delta}(X) = F^{-1}_X(1 - \delta)$.
+
+In general, we cannot afford finding the distribution function, thus, we apply a Monte Carlo
+sampling to give an $(\epsilon, \eta)$-approximation of $M_{\delta}(X)$.
+Let $\widetilde{M}_{\delta}(X, \epsilon, \eta)$ be such an approximation, satisfying:
+\begin{equation}
+\label{eq:numr-mdelta}
+  \widetilde M_{\delta}(X, \epsilon, \eta) \geq max \{ a | \Pr(X \geq a) \geq \delta
+    - \eta \} - \epsilon
+\end{equation}
+
+The idea is to perform binary search to find the best value of $a$. Initially, we guess $a = 1/2$,
+then verify if $\Pr(X \geq a) \geq \delta$. If the test is confirmed, we make the next guess as
+$a = 3/4$, otherwise, we guess $a = 1/4$. Continue until the step of the guess smaller than
+$\epsilon$.
+
+The slack $\eta$ in the probability comes from the testing for $\Pr(X \geq a) \geq \delta$. For our
+problem,  we will design a Monte-Carlo sampling algorithm. Consider one iteration, with some fixed $a$,  we have to decide: if $\Pr(X \geq a) \geq
+\delta$, or $\Pr(X \geq a) < \delta$.
+Take $N$ samples $X_1,X_2,\cdots,X_N$, where $N$ will be specified later. Let
+$p = \Pr(X \geq a)$ be the unknown, fixed probability. Define $N$ indicator random variables $Z_i$,
+where $Z_i = 1$ if the sample $X_i \geq a$, $0$ otherwise. Let $Z = \sum_{i=1}^{N}Z_i$. We have
+$\mu_Z=\E[Z] = Np$. Using Chernoff bound\cite{Upfal-book}, we bound the empirical probability $\bar p
+= \frac{Z}{N}$:
+\begin{align*}
+  & \Pr(|Z - Np| \geq \nu Np) \leq 2 exp \left( - \frac{\nu^2}{2+\nu} Np \right) \\
+  \iff &\Pr \left( |\bar p - p| \geq \nu p \right) \leq
+    2 exp \left( - \frac{\nu^2}{2+\nu} Np \right).
+\end{align*}
+
+With the desired  error $\eta = \nu p \iff \nu = \frac{\eta}{p}$, the tail bound becomes:
+\begin{equation}
+  \Pr \left( |\bar p - p| \geq \eta \right) \leq
+    2 exp \left( - \frac{\eta^2}{2p + \eta} N \right)
+  \leq 2 exp \left( - \frac{\eta^2 N}{3} \right).
+\end{equation}
+
+Given $|\bar p - p| \geq \eta$, clearly we have: $\bar p - \eta \geq \delta \implies
+p \geq \delta$, and $\bar p + \eta < \delta \implies p < \delta$. This standard method leaves
+an undecided region when $\bar p - \eta < \delta \leq \bar p + \eta$. To simplify the decision
+rule, we allow some slack around $\delta$, and have the following decision rule:
+\begin{align}
+\begin{aligned} \label{eq:3}
+  & \text{If} \enskip \bar p  \geq \delta && \implies \text{increase} \,\,\,\, a; \\
+  & \text{If} \enskip \bar p < \delta && \implies \text{decrease} \,\,\,\, a.
+\end{aligned}
+\end{align}
+%
+\Cref{alg:1} shows the pseudo code for the above  algorithm. Next, we will show that it gives an (correct)
+ $(\epsilon, \eta)$-approximation of  $M_{\delta}(X)$ (as defined in \ref{eq:numr-mdelta}). Then we will analyze the required number of samples to ensure correctness with high probability.
+%
+\begin{lemma}
+\label{lem:ee-aprox}
+\Cref{alg:1} finds an  $(\epsilon, \eta)$-approximation of  $M_{\delta}(X)$, assuming that all the Monte-Carlo tests are successful.
+\end{lemma}
+\begin{proof}
+%With the assumption, we omit the discussion on number of samples.
+It follows directly from the binary
+search that the final value $a$ is within $\pm \epsilon$ of the maximum of $a$. The decision rules
+in \cref{eq:3} is equivalent to: increase $a$ when $p \geq \delta - \eta$, decrease $a$ when
+$p < \delta + \eta$. This holds for every iteration, thus, $\Pr(X \geq a)$ is guaranteed to be
+at least $\delta - \eta$. $\Box$
+\end{proof}
+%
+In our algorithm, $N$ is the number of samples in each iteration. Suppose we want to compute an
+$(\epsilon, \eta)$-approximation of  $M_{\delta}(X)$ with  high (confidence) probability, we use the following lemma:
+\begin{lemma}
+\label{lem:num-samples}
+\Cref{alg:1} finds an $(\epsilon, \eta)$-approximation of $M_{\delta}(X)$, with probability of success  at least
+$(1 - \alpha \log(1/\epsilon))$ (for some given parameter $\alpha$), using
+$N_{\mathit{total}} \geq \frac{3}{\eta^2}\ln{\frac{2}{\alpha}} \log{\frac{1}{\epsilon}}$ samples.
+\end{lemma}
+\begin{proof}
+  For each iteration to be successful with probability at least $(1-\alpha)$, we bound the number of
+samples (in one iteration) by Chernoff bound:
+\begin{align} \label{eq:4}
+  2 exp \left( - \frac{N \eta^2}{3} \right) \leq \alpha
+    \iff N \geq \frac{3}{\eta^2}\ln{\frac{2}{\alpha}}.
+\end{align}
+The number of iterations is: $\log(1/\epsilon)$. Using union bound, we have the success probability for
+the entire algorithm: $(1 - \alpha \log(1/\epsilon))$. Hence, given  parameters
+$\delta, \epsilon, \eta, \alpha$,  \Cref{alg:1}   finds
+$\widetilde{M}_\delta(X, \epsilon, \eta)$ with success probability at least $(1 - \alpha \log(1/\epsilon))$, and
+requires at least $N_{\textit{total}} = \frac{3}{\eta^2}\ln{\frac{2}{\alpha}}
+\log{\frac{1}{\epsilon}}$ samples. $\Box$
+\end{proof}
+%
+One may ask why \cref{lem:num-samples} uses confidence of $(1 - \alpha \log(1/\epsilon))$, instead of the canonical form $(1 - \zeta)$ where $\zeta < 0$. Indeed, we choose the representation of $\alpha \log(1/\epsilon)$ to facilitate the analysis when applied to the graph influence problem, which is presented next.
+
+\begin{algorithm}
+  \caption{Approximate ${M_{\delta}(X)}$ with confidence
+            $(1 - \alpha \log(1/\epsilon))$ }
+  \label{alg:sampling}
+  \begin{algorithmic}[1]
+    \Function{MDelta}{$X[0,1]$, $\delta$, $\epsilon$, $\eta$, $\alpha$}
+    \State $N \gets \frac{3}{\eta^2}\ln{\frac{2}{\alpha}}$
+    \State $l \gets \epsilon$
+    \State $h \gets 1$
+
+    \While {$h - l \geq \epsilon$}
+      \State $\mathit{mid} = (h + l) / 2$
+      \State $X_1,\cdots,X_N \gets \textit{ samples of } X $
+      \State $\bar p = \frac{1}{N}(\# X_i, X_i \geq \mathit{mid})$
+      \If {$\bar p \geq \delta $} $l \gets \mathit{mid}$
+      \Else \enskip $h \gets \mathit{mid}$
+      \EndIf
+    \EndWhile
+    \Return $l$
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
+%\subsection{Estimation of $M_{\delta}(I(S))$}
+\begin{theorem}
+\label{thr:numsmpls}
+  On a graph of size $n$ nodes,  a given seed set $S$, for  given parameters
+   $\delta$ and $\eta$ (assumed
+  to be small constants)
+  \Cref{alg:1} finds an $(\epsilon, \eta)$-approximation of $M_{\delta}(I(S))$ using $O((\log n)^2)$ samples with success probability
+  $1- \Omega\left(\frac{1}{n}\right)$.
+\end{theorem}
+\begin{proof}
+Consider the choice of parameters when applying \Cref{alg:1} to estimate $I(S)$. Because $1 \leq
+I(S) \leq n$, we normalize $I(S)$ into the range $(0,1]$, and chose $\epsilon = 1/n$.
+For the algorithm to succeed with probability at least $(1 - 1/n)$,
+requires $\alpha = \frac{1}{n \log n}$ (by \cref{lem:num-samples}).
+ Hence the number of
+samples is:$\frac{3}{\eta^2}\log{n}\ln{\frac{n\log n}{2}} = O(\log^2 n)$.
+$\Box$
+\end{proof}
+\fi
+%
+For some random variable $X$, define $\widetilde{M}_{\delta}(X, \epsilon, \eta)$ to be
+an $(\epsilon, \eta)$-approximation of $M_{\delta}(X)$ if:
+%\onlyShort{$\widetilde M_{\delta}(X, \epsilon, \eta) \geq max \{ a | \Pr(X \geq a) \geq \delta
+ %   - \eta \} - \epsilon$.}
+\begin{equation}
+\label{eq:numr-mdelta}
+  \widetilde M_{\delta}(X, \epsilon, \eta) \geq max \{ a | \Pr(X \geq a) \geq \delta
+    - \eta \} - \epsilon
+\end{equation}
+%
+\begin{theorem} [Sampling Bound for $M_{\delta}(I(S))$]
+\label{thr:numsmpls}
+  On a graph of size $n$ nodes,  a given seed set $S$, for  given parameters
+   $\delta$ and $\eta$
+  there is a Monte-Carlo randomized algorithm that finds an $(\epsilon, \eta)$-approximation of $M_{\delta}(I(S))$
+  with probability of success  at least
+$(1 - \alpha \log(1/\epsilon))$ (for some given parameter $\alpha$), using
+$N_{\mathit{total}} \geq \frac{3}{\eta^2}\ln{\frac{2}{\alpha}} \log{\frac{1}{\epsilon}}$ samples.
+  In particular, if  $\delta$ and $\eta$ are small constants, then only
+  $O((\log n)^2)$ samples are needed to obtain success probability
+  $1- O\left(\frac{1}{n}\right)$.
+\end{theorem}
+%
+\subsection{A Simple Greedy Heuristic for \mdelta}
+\label{sec:heu}
+
+Motivated by the greedy algorithm of \cite{kkt-2003} for the $\infmax{}$ problem, we first consider a greedy algorithm for \mdelta{}: start with an empty set $S$, and proceed in
+$k$ steps; in each step, select the node $v\not\in S$ which yields the highest increment in $\mdelta$, and add it to $S$. The pseudocode is shown in \Cref{alg:2}. The algorithm uses  $O(k(\log n)^2)$ samples overall, since it uses
+$k$ applications of \textsc{MDelta(I($\cdot$))}  and each application uses $O(\log^2 n)$ samples to estimate the influence
+of the current seed set with high probability (cf. Theorem  \ref{thr:numsmpls}).
+
+\iffalse
+Motivated by the greedy algorithm of \cite{kkt-2003} for the $\infmax{}$ problem, we first consider a greedy algorithm for \mdelta{}: start with an empty set $S$, and proceed in
+$k$ steps; in each step, select the node $v\not\in S$ which yields the highest increment in $\mdelta$, and add it to $S$. The pseudocode is shown in \Cref{alg:2}. The algorithm uses  $O(k(\log n)^2)$ samples overall, since it uses
+$k$ applications of algorithm \textsc{MDelta(I($\cdot$))} where each uses $O(\log^2 n)$ samples. The success probability of the algorithm is by union bound on $k$ steps
+(see Theorem \ref{thr:numsmpls}).
+\fi
+%
+\iffalse
+\begin{lemma}
+\label{thr:heu}
+ \Cref{alg:2}
+   uses $O(k(\log n)^2)$ samples overall assuming that
+   is at least $1- \Omega\left(\frac{k}{n}\right)$.
+\begin{proof}
+  We proceed in a similar fashion to the proof of Theorem \ref{thr:numsmpls}. However, we need the union bound for
+  high probability of success over the course of the algorithm, which includes $k$ iterations.
+  Since $k$ is a bounded constant, we only have to ensure that the error probability bound for one iteration is small enough.
+  Consider iteration $i$, where the incremental seed set size is $i$. The algorithm needs
+  to estimate $M_{\delta}(\cdot)$ for $(n - i \approx n)$ candidates sets. For the union bound to hold, we require each estimation has a confidence of $O(1-1/n^2)$, then, by \cref{lem:num-samples}, $\alpha = \frac{1}{n^2 \log n}$.
+  The total number of samples is thus:
+  \begin{equation}
+      k \frac{3}{\eta^2}\log{n}\ln{\frac{n^2\log n}{2}} = O(k\log^2 n). \Box
+  \end{equation}
+\end{proof}
+\end{lemma}
+\fi
+%
+\begin{algorithm}[t]
+\footnotesize
+\caption{\infprobheu{} - Heuristic Incremental $k$-influence-set}
+\label{alg:2}
+\begin{algorithmic}[1]
+  \Function{ProbInf-Heu}{$G(V,E), k, \delta, \eta$}
+  \State $\epsilon \gets \frac{1}{n}$
+  \State $\alpha \gets \frac{1}{n\log n}$
+  \State $S \gets \varnothing$
+  \State $V' \gets V$ %\textit{ set of nodes}
+  \While {$|S| < k$}
+    \State $u \gets \argmax\limits_{v \in V'}$
+      \Call{MDelta}{$I(S \cup \{v\}) - I(S), \delta, \eta, \epsilon, \alpha$}
+    \State $S \gets S \cup \{u\}$
+    \State $V' \gets V' - \{u\}$
+  \EndWhile
+  \Return $S$
+  \EndFunction
+\end{algorithmic}
+\end{algorithm}
+%\red{Gopal: Explain what guarantee on $\delta$ means? This should be explained in the first para when we explain
+%the greedy algorithm.}
+Algorithm~\ref{alg:2}  does not guarantee any approximation bound regarding the influence, since $M_{\delta}(I(\cdot))$
+can be shown to be not a sub-modular set function\cite{zhang:kdd14} (a proof can be found in the full paper).
+However, we find empirically that Algorithm \ref{alg:2} performs quite well on real graph data sets (Section \ref{sec:expt}).
+%
+%
+% \vspace{-0.05in}
+% \subsection{Non-submodularity of \mdelta}
+% We note that \mdelta\ is non-submodular. The proof is by a constructive example, and can be found in \cite{zhang:kdd14}, with slightly different notations.
+% We consider the weighted version of \infprob{}, with an additional constraint that the seed set $S\subseteq R$, where $R\subseteq V$ is fixed as part of the input.
+% For a given seed set $S$, we define $\mdelta$ as the maximum value $a$ such that $\Pr[wt(I(S)) \geq a]\geq\delta$. The following example shows that $f(S) = \mdelta$ is not submodular.
+
+% Consider a graph with vertices $V=\{a, b, c, d\}$, weights $wt(a) = wt(b) = wt(d) = 0$, $wt(c)=10$ and edges $E=\{(a, c),
+% (b, c)\}$ (so $d$ is isolated). Consider $R=\{a, b, d\}$ as the set of potential seeds. Assume both edges in $E$ have probability $p$ and $\delta=p+\epsilon$, for a small $\epsilon$.
+
+% We have $f(\{a\}) = 0$, since the edge $(a,c)$ is picked with probability $p$. Similarly,
+% $f(\{b\}) = f(\{d\}) = 0$. We have $f(\{a, b\}) = 10$, because one of the edges survives with
+% probability $2p-p^2 > p+\epsilon$. Therefore,
+% \[
+% 0 = f(\{a\}) - f(\phi) \leq f(\{a, b\}) - f(\{b\}) = 10,
+% \]
+% which implies $f(\cdot)$ is not submodular. So in this instance, a greedy algorithm, which adds a vertex $v$ that maximizes $f(S\cup\{v\}) - f(S)$ might end up
+% picking the set $\{d, a\}$, which is arbitrarily worse than $\{a, b\}$.

@@ -1,0 +1,143 @@
+
+\documentclass[a4paper,UKenglish,cleveref, autoref]{lipics-v2019}
+%This is a template for producing LIPIcs articles.
+%See lipics-manual.pdf for further information.
+%for A4 paper format use option "a4paper", for US-letter use option "letterpaper"
+%for british hyphenation rules use option "UKenglish", for american hyphenation rules use option "USenglish"
+%for section-numbered lemmas etc., use "numberwithinsect"
+%for enabling cleveref support, use "cleveref"
+%for enabling cleveref support, use "autoref"
+
+
+%\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
+
+\bibliographystyle{plainurl}% the mandatory bibstyle
+
+\title{Dummy title} %TODO Please add
+
+\titlerunning{Dummy short title}%optional, please use if title is longer than one line
+
+\author{Author Name}{Dummy University Computer Science Department,
+USA \and \url{http://www.myhomepage.edu} }
+{johnqpublic@dummyuni.org}{}
+{}
+%TODO mandatory, please use full name; only 1 author per \author macro;
+% first two parameters are mandatory, other parameters can be empty.
+% Please provide at least the name of the affiliation and the country. The full address is optional
+
+\authorrunning{J.\,Q. Public and J.\,R. Public}
+%TODO mandatory. First: Use abbreviated first/middle names.
+%Second (only in severe cases): Use first author plus 'et al.'
+
+\Copyright{John Q. Public and Joan R. Public}
+%TODO mandatory, please use full first names.
+% LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
+
+\ccsdesc[100]{Theory of computation~Numeric approximation algorithms}
+%TODO mandatory: Please choose ACM 2012 classifications from https://dl.acm.org/ccs/ccs_flat.cfm
+
+\keywords{Graph data mining, Influence maximization, Probabilistic guarantee}
+%TODO mandatory; please add comma-separated list of keywords
+
+\category{}%optional, e.g. invited paper
+
+\relatedversion{}%optional, e.g. full version hosted on arXiv, HAL, or other respository/website
+%\relatedversion{A full version of the paper is available at \url{...}.}
+
+\supplement{}%optional, e.g. related research data, source code, ... hosted on a repository like zenodo, figshare, GitHub, ...
+
+%\funding{(Optional) general funding statement \dots}%optional, to capture a funding statement, which applies to all authors. Please enter author specific funding statements as fifth argument of the \author macro.
+
+% \acknowledgements{I want to thank \dots}%optional
+
+\nolinenumbers %uncomment to disable line numbering
+
+\hideLIPIcs  %uncomment to remove references to LIPIcs series (logo, DOI, ...),
+%  e.g. when preparing a pre-final version to be uploaded to arXiv or another public repository
+
+%Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \EventEditors{John Q. Open and Joan R. Access}
+% \EventNoEds{2}
+% \EventLongTitle{42nd Conference on Very Important Topics (CVIT 2016)}
+% \EventShortTitle{CVIT 2016}
+% \EventAcronym{CVIT}
+% \EventYear{2016}
+% \EventDate{December 24--27, 2016}
+% \EventLocation{Little Whinging, United Kingdom}
+% \EventLogo{}
+% \SeriesVolume{42}
+% \ArticleNo{23}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{mathtools}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{import}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.14}
+\usepgfplotslibrary{groupplots}
+\pgfplotsset{
+  every axis/.append style={
+    enlargelimits=false,
+    scale only axis,
+    scaled x ticks=false,
+    scaled y ticks=false,
+    legend style={fill=none, draw=none},
+  }
+}
+
+\newcommand{\mycomment}[2][Comment]{\textcolor{blue} {\textsc{#1:} \emph{#2}}}
+
+\newcommand{\infmax}{\textsc{MaxExpInf}}
+\newcommand{\infprob}{\textsc{MaxProbInf}}
+\newcommand{\infprobheu}{\textsc{ProbInf-Heu}}
+\newcommand{\bicrit}{\textsc{Bicriteria}}
+\newcommand{\bicritalgo}{\textsc{BiCritMdelta}}
+\newcommand{\multicritalgo}{\textsc{MultiCritMdelta}}
+\newcommand{\mdelta}{\mbox{$M_{\delta}(I(S))$}}
+\newcommand{\expinf}{\textsc{ExpInf}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\maxinfdelta}{$M_{\delta}(I(S))$}
+\newcommand{\iinf}{\textsc{Inf}}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator{\E}{E}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+
+% \newtheorem{theorem}{Theorem}
+% \newtheorem{lemma}[theorem]{Lemma}
+% \newtheorem{definition}{Definition}
+\newtheorem{fact}[definition]{Fact}
+\newtheorem{observation}[definition]{Observation}
+
+\begin{document}
+
+\maketitle
+
+%TODO mandatory: add short abstract of the document
+\begin{abstract}
+The standard Influence maximization problem involves choosing a seed set of a given size,
+which maximizes the expected influence. However, such solutions might have a significant
+probability of achieving low influence, which might not be suitable in many applications.
+In this paper, we consider a different approach: find a seed set which maximizes the influence set
+size, which can be achieved with a given probability. We show that this objective is not
+submodular, and design two algorithms for this problem, one of which gives rigorous approximation
+bounds. We evaluate our algorithms on multiple datasets, and show that they have similar or better
+performance as the ones optimizing the expected influence, but with additional guarantees on the
+probability.
+\end{abstract}
+
+\input{intro_short.tex}
+\input{prelim.tex}
+\input{relwork.tex}
+\input{sampling.tex}
+\input{greedy.tex}
+\input{empirical.tex}
+
+\bibliography{refs}
+
+\end{document}

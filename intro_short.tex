@@ -1,0 +1,76 @@
+\vspace{-0.2in}
+\section{Introduction}
+\label{sec:intro}
+
+A large number of phenomena, e.g., the spread of influence, fads and ideologies on social
+networks, can be modeled as a diffusion process on a graph; see, e.g., \cite{ek-2010,v011a004}.
+From a given seed set $S$, let the influence spreads by some probabilistic models
+(see \ref{sec:model} and \ref{sec:related}), and take the size of the final influenced
+set, denoted $I(S)$, as the \textit{influence} of $S$. One optimization problem, \textit{influence
+maximization}, is stated as follows: choose a seed set $S$ of size $k$, so
+that the expectation, $E[I(S)]$, is maximized---this is referred to as the
+ \infmax{} problem.
+The seminal work by Kempe, Kleinberg and Tardos \cite{kkt-2003} was the first to give a constant
+factor approximation to the \infmax{} problem.
+There has been a lot of work on many variants of influence maximization for several diffusion
+models; see, e.g., \cite{v011a004,ek-2010} for details.
+
+However, there are instances, in which the expected influence set is large, but
+the variance is also high, which is not desirable.
+% As a result, the optimum seed set $S$, which maximizes $E[I(S)]$, could have the
+% unsatisfactory property that  $\Pr[I(S)\geq \alpha]$ (i.e., the probability that the number of
+% influenced nodes is at least $\alpha$) is not very high (cf. Lemma \ref{lem:example}).
+A common way to understand the variance in a random variable is by examining its quantiles.
+Motivated by this, we focus on the problem of finding a seed set $S$ of size $k$ such that the
+$\delta$ - quantile value (for a given $\delta$, $0 < \delta \leq 1$) of $I(S)$ is maximized ---
+we denote this by \maxinfdelta $= \max\{\alpha| \Pr[I(S)\geq\alpha] \geq\delta\}$. The focus
+of this paper is to find $S$ that maximizes \maxinfdelta; we refer to this as the $\infprob{}$
+problem.
+
+The first prior work on influence maximization with probabilistic guarantees was by
+\cite{zhang:kdd14}: they introduce the \emph{Seed minimization with probabilistic coverage guarantee} (SM-PCG) problem: find the smallest seed set $S$ that ensures that $\Pr[I(S)\geq\eta]\geq P$, where $\eta$ and $P$ are parameters. They also give an additive approximation to the minimum seed set size needed for a given $\eta, P$, and show that the solutions achieve similar expected influence, but with the additional guarantee on the probability.
+There are two limitations of their work. First, the additive approximation is $O(\sqrt{n})$,
+which can be quite large. In contrast, influence maximization has typically been studied for
+bounded seed set sizes, which, ideally, should be small. Second, the achievable influence $\eta$
+is not known a priori, and so the algorithm would have to be run for multiple $\eta$ values to
+understand a tradeoff.
+
+In this paper, we study the structure of \infprob{} problem, and develop efficient approximation
+algorithms for it. Our contributions are the following.\\
+%\begin{itemize}
+%\item
+\noindent {\bf 1.}  We formalize a more natural notion of influence maximization with probabilistic
+guarantees as the quantile value. We also study the structure of solutions to \infprob{}, and what
+ effect the probabilistic guarantees have. These were not examined in \cite{zhang:kdd14}.
+
+\noindent {\bf 2.}
+We develop a multi-criteria approximation algorithm, \multicritalgo{}, with \emph{multiplicative
+factor} guarantees (instead of both multiplicative and additive guarantee, in \cite{zhang:kdd14}).
+We also design and
+analyze an efficient sampling method, \infprobheu{}, to estimate $M_{\delta}(I(S))$ for any given
+ seed set $S$.
+
+A main technical novelty of our work is the analysis of our multi-criteria approximation algorithm.
+We use the \emph{Sample Average Approximation} (SAA) technique from stochastic optimization
+(see, e.g., \cite{swamy:sigact06}), which involves constructing samples $G_1,\ldots,G_N$ of
+the graph, as per the IC model. Since it can be shown that $\mdelta$ is not submodular (cf. Section \ref{sec:heu}), we define a
+different type of submodular function $F_{\lambda}(S)$, using the \emph{saturation} technique of \cite{krause:jmlr08}. 
+% which thresholds the influence of $S$
+% in each $G_i$ to $\lambda$, and takes an average. By adapting the techniques of \cite{krause:jmlr08},
+We show that finding a minimum cost set $S$ that ensures $F_{\lambda}(S)\geq \delta\lambda$ is sufficient to give a multi-criteria approximation---this
+problem is a variant of the standard submodular cover problem. However, the problem does not
+satisfy an important technical requirement in the submodular cover problem, and we need to
+modify the analysis of \cite{wolsey:combinatorica82} to account for this difference.
+
+\noindent {\bf 3.}
+Finally, we evaluate our methods on several datasets.  Not surprisingly, the solutions to
+$\mdelta$ computed using \multicritalgo{} and \infprobheu{}, have similar or higher (up to 10\% in some cases) quantile values than the \infmax{} solution. More importantly, we observe that the running time of both \multicritalgo{} and \infprobheu{} is significantly faster (about 10 times faster) compared to the standard algorithm   that implements \infmax{} (due to Kempe et al \cite{v011a004}).  In fact,  we also observe that our solutions have similar or better \emph{expected influence value}, than the \infmax{} solution (though this objective was not being optimized); additionally, we get bounds on the probability.
+In particular, we find that for many instances with low activation probabilities, the seed
+set output by \multicritalgo{} yields even better (by up to 10\%) expected influence value than
+the \infmax{} solution, computed using the approximation algorithm of \cite{kkt-2003} which
+gives a constant-factor approximation to the optimal expected influence.
+%\end{itemize}
+% We show that $\mdelta$ is not a submodular function of $S$.
+
+All omitted proofs and some additional details are  presented in the full version
+of the paper \url{www.dropbox.com/sh/r6i10b6s18gduap/AAD-4ZUScaq8_-RBeDtCsp2oa?dl=0}.

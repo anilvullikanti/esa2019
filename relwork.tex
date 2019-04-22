@@ -1,0 +1,45 @@
+\vspace{-0.1in}
+\section{Related Work}
+\label{sec:related}
+The works by \cite{kkt-2003}, \cite{v011a004}, were the first to formulate the problem of influence
+spreading as a discrete
+optimization problem. They consider two main diffusion models: \textit{independent cascade} (which we adopt in this paper) and
+\textit{linear threshold}. Works in these models
+include two main optimization problems: maximizing the expected influence with constraints on the
+seed set (usually size), and minimizing the seed set (according to some measurement) to achieve a target expected
+influence. These problems are at least NP-hard, \cite{v011a004}. In \cite{chen2010scalable}, it
+was shown that computing the expected influence is \#P-hard. These results set a theoretical limit
+on what can be done to attack the problems.
+
+The approach proposed by \cite{kkt-2003}, using submodular
+set function and greedy heuristic, gives a $(1-1/e-\epsilon)$-approximation to the maximizing the expected
+influence problem. The error $\epsilon$ is due to Monte Carlo estimation of the expected
+influence, which is the main issue in practice, where large real world graphs discourage
+excessive sampling. \cite{borgs2014maximizing} propose an algorithm with
+nearly optimal theoretical runtime of $O((m+n)k\epsilon^{-2}\log n)$ while retaining the same
+approximation guarantee. The technique is to sample \textit{reversed} influence, which is adopted
+and improved upon in other works, e.g., \cite{tang2014influence}, \cite{tang2015influence},
+\cite{nguyen2016stop}. While reversed influence sampling has a theoretical guarantee for the
+expectation problem, it is not extendable to our probabilistic \mdelta.
+Another approach, proposed by \cite{lucier:kdd15}, is to
+estimate expected influence as a Riemann sum, using $O(n \epsilon^2 \text{polylog}(n))$ samples
+which can be implemented in  parallel by using MapReduce.
+
+Other models are also studied, for example, fixed threshold models \cite{chen2009approximability},
+\cite{goldberg2013diffusion}, time-restricted diffusion model
+\cite{goyal2013minimizing}, \cite{chen2012time}, \cite{dinh2014cost},
+continuous-time diffusion model
+\cite{du2013scalable}, and diffusion in dynamic network \cite{tong2017adaptive}.
+
+The work closest to ours is presented by \cite{zhang:kdd14}. They
+propose to measure influence with a probabilistic guarantee; their  goal is to find a minimum-sized seed set   that achieves a given
+target influence with a specified probability. They show that their problem is \#P-hard, and give an
+approximation algorithm. The algorithm uses expected influence as the criteria (which requires high number of samples) to select
+members of the seed set, and then verifies the probability condition.
+They show that the size of the output seed set, compared to the
+optimal one, incurs both a multiplicative error of $(\ln n + O(1))$ and an additive error
+of $O(\sqrt{n})$, under the assumption that the standard deviation of the influence is
+$O(\sqrt{n})$. In contrast, our goal is different ---
+we want to maximize influence with probabilistic guarantee, with a constraint on the seed set
+size. Our multi-criteria approximation does not incurs additive error, and does not relies
+on assumption about the distribution.

@@ -1,0 +1,262 @@
+\vspace{-0.1in}
+\section{Empirical Evaluation}
+\label{sec:expt}
+
+\begin{figure*}[t]
+% \begin{subfigure}{.40\textwidth}
+%   \subimport*{graphs/}{fb_a001_05.tex}
+%   \caption{Facebook data set.}
+% \end{subfigure}
+% \hfill
+% \begin{subfigure}{.40\textwidth}
+%   \subimport*{graphs/}{tw_a001_05.tex}
+%   \caption{Twitter data set.}
+% \end{subfigure}
+% \\
+\resizebox{\textwidth}{!}
+{
+\begin{subfigure}[t]{.45\textwidth}
+  \captionsetup{skip=-8pt}
+  \subimport*{graphs/}{fb_a001_05.tex}
+  \caption{Facebook data set.}
+  \label{fig:combine-a}
+\end{subfigure}
+\begin{subfigure}[t]{.45\textwidth}
+  \captionsetup{skip=-8pt}
+  \subimport*{graphs/}{tw_a001_05.tex}
+  \caption{Twitter data set.}
+  \label{fig:combine-b}
+\end{subfigure}
+%
+\begin{subfigure}[t]{.45\textwidth}
+  \captionsetup{skip=4pt}
+  \subimport*{graphs/}{fb.tex}
+  \caption{Facebook dataset.}
+  \label{fig:combine-c}
+\end{subfigure}
+\begin{subfigure}[t]{.45\textwidth}
+  \captionsetup{skip=4pt}
+  \subimport*{graphs/}{tw.tex}
+  \caption{Twitter dataset.}
+  \label{fig:combine-d}
+\end{subfigure}
+}
+\captionsetup{belowskip=-0.1in}
+\caption{
+\small
+Comparison of three algorithms outputs. For $\infprobheu$ and $\multicritalgo$ algorithms, the seed sets are optimized with
+$\delta=0.7$. Edges activation are random values in the range $[0.001,0.05]$.
+Figures (a) and (b) show the average influence versus seed set size.
+Figures (c) and (d) show the Empirical cumulative distribution function (ECDF) of influence of
+seed sets of size $40$. The vertical color bars indicate the mean values of the
+corresponding data.
+The further to the right around probability $=1 - \delta = 0.3$, the
+better the influence guarantee.}
+\label{fig:combine}
+\end{figure*}
+
+% \begin{figure*}[t]
+% \resizebox{.5\textwidth}{!}
+% {
+% \begin{subfigure}{.45\textwidth}
+%   \subimport*{graphs/}{fb.tex}
+%   \caption{Facebook dataset.}
+% \end{subfigure}
+% \begin{subfigure}{.45\textwidth}
+%   \subimport*{graphs/}{tw.tex}
+%   \caption{Twitter dataset.}
+%   \label{fig:ecdf-tw}
+% \end{subfigure}
+% }
+% \begin{subfigure}{.45\textwidth}
+%   \subimport*{graphs/}{sd.tex}
+%   \caption{Slashdot dataset.}
+% \end{subfigure}
+% \hfill
+% \begin{subfigure}{.45\textwidth}
+%   \subimport*{graphs/}{pk.tex}
+%   \caption{Pokec dataset.}
+% \end{subfigure}
+% \caption{
+% \small
+% Empirical cumulative distribution function (ECDF) of influence of seed sets of size $40$,
+% using $100$ samples for each ECDF. The vertical color bars indicate the mean values of the
+% corresponding data. For $\infprobheu$ and $\multicritalgo$ algorithms, the seed sets are optimized with
+% $\delta=0.7$. Edges activation are random values in the range $[0.001,0.05]$.
+% The further to the right around probability $=1 - \delta = 0.3$, the
+% better guarantee influence.}
+% \label{fig:ecdf}
+% \end{figure*}
+
+We examine the empirical performance of our algorithms (\infprobheu{} and \multicritalgo{})
+on real world social networks. We study the following questions.\\
+%\begin{itemize}
+%\item
+$\bullet$ How does $\mdelta$ depend on $|S|$ and $\delta$?\\
+$\bullet$ How are the actual execution times compared to one another and to the theoretical
+sampling sizes? \\
+%\item
+$\bullet$ How does the performance of our algorithms compare with the solution to the \infmax{}
+problem, in terms of both the $\expinf$ and $\mdelta$ objectives? 
+
+%\item
+%What are the differences between the characteristics of nodes in the solutions of $\infprob{}$ and $\infmax{}$?
+% \item
+% What are the approximation ratio and running time of our algorithms in practice?
+%\end{itemize}
+%
+\vspace{-0.05in}
+\subsection{Experimental Setup}
+
+\noindent
+\textbf{Data sets and tested algorithms}. We use four social network data sets, which were crawled from public sources,
+as provided by \cite{snapnets}. The basic statistics of the data sets can be found in Table~\ref{tb:1}.
+\begin{figure}
+\captionsetup{belowskip=-0.2in}
+\resizebox{0.4\textwidth}{!}
+{
+% \begin{subfigure}{\textwidth}
+  \subimport*{graphs/}{delta_pk.tex}
+% \end{subfigure}
+}
+\caption{
+\small
+Pokec Dataset: Varying $\delta$, with low edge activation in range $[0.001, 0.01]$. For each algorithm, we report the guarantee influence of the output
+seed sets of size $15$, $30$, and $40$.
+%The lower plots correspond to smaller seed sets.
+}
+\label{fig:vdelta}
+\end{figure}
+%
+
+We implement our algorithms for \infprob{} (\infprobheu, and
+\multicritalgo), and compare them with the greedy algorithm for \infmax\ (as described in \cite{v011a004}). 
+% Since our focus is not on the running time of the algorithm for \infprob{}, 
+% we only consider the implementation of \cite{v011a004}, instead of the more recent advances in making it faster, e.g., \cite{borgs2014maximizing,chen2010scalable,tang2014influence,tang2015influence}. 
+There have been more recent advances on algorithms to scale the implementation of influence maximization, e.g., \cite{borgs2014maximizing,chen2010scalable,tang2014influence,tang2015influence}; however, these are pretty complicated, and so we use the algorithm of \cite{v011a004} for comparison.
+Further, we use $10^4$ samples, following the claim in \cite{v011a004} that these many samples suffice for datasets of this scale, though the worst case bound is  $O(n^2)$ samples, 
+
+
+For \infprobheu{} and \multicritalgo{}, we take $\eta=0.1$, which is the additive error for the
+probability guarantee $\delta$ (as discussed in Section \ref{sec:sampling}).
+Following Theorem \ref{thr:numsmpls}, we choose the number of samples to be $100 \times \log(n)$, where $n$ is the number of nodes of the input graph.
+%This is a bit lower than the theoretical value to ensure high probability of correctness.
+%However, as the experiment results show, the setting is working well in practice.
+Finally, recall that \multicritalgo{} can relax the size of the seed set by a multiplicative factor of $\ln(n)$. In order to make the comparison reasonable, we run it with a smaller budget, so that the final seed set size (after the relaxation) is within the bound of $k$; this follows the approach in other works which obtain bicriteria approximation results, e.g., \cite{krause:jmlr08}.
+
+Our codes are implemented in C++ with OpenMP, and executed on a server with $24$ cores and $16GB$ of memory. The source code is published on github.
+
+\noindent
+\textbf{Model parameters.} We use the IC model with activation probabilities of $0.01, 0.05, 0.1$, and a two random settings, where the activation probability of each edge is picked uniformly randomly in the range $[0.001, 0.05]$ and $[0.001, 0.01]$.
+%As the results show, high activation probability gives trivially high spreading, due to the fact that social graphs are well connected and having small diameters. We then focus on smaller activation: each edge is assigned an activation picked uniformly randomly in the range
+
+For \infprobheu{} and \multicritalgo{}, we conduct two sets of experiments. The first one is configured with probability guarantee $\delta$ in $\{0.2, 0.5, 0.7 0.9\}$.
+We observe that the resulted seed sets qualities do not vary much with $\delta$ (consistent with the observation in \cite{zhang:kdd14}), and, therefore, report most of our results for $\delta=0.7$ because of the limited space. In the second set of experiments, we try \infprobheu{} and \multicritalgo{} with extreme values of $\delta$, which are very close to $0$ or $1$.
+
+For the constraint on size of the seed set, $k$, we experiment with all values in $[0,40]$. It is known from the related works that the influence is quickly saturated when one increases $k$, such that increasing the seed set does not have significant gain.
+%Combining the parameters setting results in large number of experiments. Thus we will only report the important findings.
+%which implies that influence is well concentrated in real social networks. This is the same observation noted in \cite{zhang:kdd14}.
+
+\vspace{-0.05in}
+\subsection{Results and Evaluation}
+We compare the algorithms by asserting the quality of the
+returned seed sets on the original graph, in term of average influence, and empirical cumulative
+distribution functions (ECDF).
+% Using the \textit{triggering set} technique, we pre-activate the edges to receive a set of fresh samples. Then we calculate the influence of the resulted seed sets
+% on these samples. Using that data, we calculate the mean values, and the ECDF's. The ECDF migh not be well estimated, since we do not have any knowledge of the true distributions. The standard approach in this case is to employ non-parametric estimation. We use kernel density estimator (KDE) (\cite{terrell1992variable}, \cite{silverman2018density}) with Gaussian kernel.
+% Since all seed sets are measured with the same set of samples, the comparison is fair.
+%
+\begin{table}
+\caption{Data sets.}
+\label{tb:1}
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Data set & Nodes & Edges & Diameter \\
+\midrule
+Facebook & 4039 & 88234 & 8 \\
+Twitter & 81306 & 1768149 & 7 \\
+Slashdot & 77360 & 905468 & 10 \\
+Pokec & 1632803 & 30622564 & 11 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\smallskip
+\noindent
+\textbf{Comparison with \expinf{} solution.}
+The experiment results with edge activation randomly in the range
+$[0.001, 0.05]$, are shown in Figure \ref{fig:combine}.
+The seed sets are computed by their
+respective algorithms, where both \infprobheu{} and \multicritalgo{} has $\delta$ set to $0.7$.
+In Figures \ref{fig:combine-a} and \ref{fig:combine-b}, we observe that
+\multicritalgo{} gives the best seed sets, while \infprobheu{} gives comparable or better sets,
+versus \infmax{} solutions.
+
+\smallskip
+\noindent
+\textbf{Execution time.} One of the main advantages of \multicritalgo{} and 
+\infprobheu{} algorithms is that their execution times are much smaller compared to the  greedy algorithm for \infmax  (as described in \cite{v011a004}), while the qualities of the solutions obtained are similar or better. In fact, the \multicritalgo{} algorithm is the fastest among the three. The execution time depends on the number of samples. Each sample
+complexity depends on the density of the graph, and the edge activation probability. We note that both \multicritalgo{} and 
+\infprobheu{} algorithms need significantly less number of samples compared to
+that of the algorithm of \cite{v011a004}. We notice that
+the variation of $\delta$ do not have much affect on the runtime, and only report the runtime for
+$\delta=0.7$, as shown in Table \ref{tb:2}.
+% 
+\begin{table*}[t]
+  \caption{Execution Time, for $k=40$, $\delta=0.7$ (where applicable), and various edge activation
+  probabilities. The random probability is uniformly in the range $[0.001, 0.05]$. Runtime is
+  measured in seconds. mexp, mprob, and mcrit indicates \infmax, \infprobheu, and \multicritalgo{}
+  respectively.}
+  \label{tb:2}
+  \centering
+  \begin{tabular}{lrrrrrrrrrrrr}
+  \toprule
+  Data set & \multicolumn{3}{c}{rand} & \multicolumn{3}{c}{0.01} & \multicolumn{3}{c}{0.05} & \multicolumn{3}{c}{0.1} \\
+  \cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-10} \cmidrule(lr){11-13}
+           & mexp & mprob & mcrit & mexp & mprob & mcrit & mexp & mprob & mcrit & mexp & mprob & mcrit \\
+  \midrule
+  Facebook &   150 &    24 &    \textbf{9} &   138 &    22 &    \textbf{9} &    162 &    24 &    \textbf{9}  &    182 &    26 &   \textbf{10} \\
+  Twitter  &  3483 &   690 &  \textbf{242} &  3014 &   634 &  \textbf{249} &   4038 &   799 &  \textbf{252}  &   4216 &   879 &  \textbf{260} \\
+  Slashdot &  1906 &   402 &  \textbf{225} &  1825 &   383 &  \textbf{223} &   2130 &   438 &  \textbf{232}  &   2517 &   506 &  \textbf{242} \\
+  Pokec    & 59445 & 20067 & \textbf{6553} & 53703 & 16951 & \textbf{6537} &  68646 & 19723 &  \textbf{6850} &  75530 & 22600 & \textbf{6670} \\
+  \bottomrule
+  \end{tabular}
+\end{table*}
+% 
+
+%\smallskip
+\noindent
+\textbf{Probabilistic guarantees.}
+We study the probabilistic guarantees of the different algorithms through empirical cumulative
+distribution functions (ECDF) \cite{terrell1992variable}.
+Due to space constraint, we only report the results for the case where edge activation are picked randomly in the range $[0.001,0.05]$, with $\delta-0.7$. We take the solutions for $k=40$ and fit their
+ECDF's by kernel density estimation with Gaussian kernel.
+% returned by the algorithms, then evaluate them as follow:
+% compute the influence over $100$ fresh samples, and fit their
+% ECDF's by kernel density estimation with Gaussian kernel.
+These are plotted in figures \ref{fig:combine-c} and \ref{fig:combine-d}, together with
+vertical lines indicating the respective mean values. The
+measurement $M_{\delta}(.)$ can be asserted by the ECDF at probability $(1-\delta)$. For
+example, with $\delta=0.7$, in figure \ref{fig:combine-d}, \multicritalgo{} seed set and \infprobheu{} seed set
+is guarantee to have an influence higher than $12100$ for $70$\% of times, which is better than
+\infmax{} seed set corresponding value of $10800$.
+Generally, the further the ECDF to the right, around probability $(1-\delta)$, the higher the
+quality of the seed set as per $M_{\delta}(.)$.
+
+\smallskip
+\noindent
+\textbf{Effects of varying $\delta$.}
+Figure~\ref{fig:vdelta} shows the influence guarantee computed by both algorithms for $\delta\in\{0.005, 0.01, 0.05, 0.1, 0.95, 0.995\}$, with $k\in\{15, 30, 40\}$.
+We observe that the $\mdelta$ value from \infprobheu{} decreases steadily with $\delta$, with sharp decrease when $\delta$ is closer to $1$. In contrast, the $\mdelta$ value from  \multicritalgo{} is quite insensitive to $\delta$.
+Further, \infprobheu{} has higher $\mdelta$ than \multicritalgo{} for small values of $\delta$.
+% We observe that \infprobheu{} is specifically tight around $\delta$ (with a slack of $\eta$ controllable by the number of samples), however without any guarantee. The seed set output by \infprobheu{} is correct as per the probabilistic guarantee, but the influence can be far from optimal.
+In particular, \multicritalgo{} gives good solution in most of the scenarios, except when $\delta$ is close to $0$ or $1$, due to the $1/2$ factor in approximating $\delta$.
+% This suggests that using \multicritalgo{} for typical values of $\delta$ is the best choice. In special case when we need extreme probabilistic guarantee, the more pessimistic \infprobheu{} might be better.
+
+% The \infprob{} problem has the probability guarantee $\delta$ as an input parameter. We already observed that $\delta$ does not have significant effect on the quality of the optimal seed sets. Which implies in real world graphs, the influence is very well concentrated. Using extreme values of $\delta$ in $\{0.005, 0.01, 0.05, 0.1, 0.95, 0.995\}$, for each data set, we execute \infprobheu{} and \multicritalgo{} to find the optimal seed sets of size $k$ in $\{15, 30, 40\}$, and report the \textit{guarantee influence}.
+
+% \Cref{fig:vdelta} shows how \infprobheu{} outputs sets with lower influence guarantees when $\delta$ is increasing. The decreasing are sharp when $\delta$ is colser to $1$, which is as excpected. \multicritalgo{} is more resistant to the change of $\delta$. This is not to our surprise, since our analysis shows that the approximation is relaxed with $\delta/2$. In all data sets, \infprobheu{} gives higher guarantee influence when $\delta$ is closer to $0$. Except for the Facebook data set, around $\delta=0.4$, \infprobheu{} gives influence guarantees lower than \multicritalgo{} . In the Facebook data set, the smallest one in our experiment, \infprobheu{} outputs decreases earlier, at around $\delta=0.2$.
+
+% The findings confirm the intended characteristics of our algorithms. \infprobheu{} is specifically tight around $\delta$ (with a slack of $\eta$ controllable by the number of samples), however without any guarantee. The seed set output by \infprobheu{} is correct as per the probabilistic guarantee, but the influence can be far from optimal. \multicritalgo{} gives good solution in most of the scenarios, except when $\delta$ is close to $0$ or $1$, due to the $1/2$ factor in approximating $\delta$. We conclude that for real world graphs, where influence tends to be well concentrate, using \multicritalgo{} for typical values of $\delta$ is the best choice. In special case when we need extreme probabilistic guarantee, the more pessimistic \infprobheu{} might be better.
+%

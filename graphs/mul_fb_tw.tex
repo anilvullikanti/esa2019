@@ -1,0 +1,53 @@
+\begin{center}
+\begin{tikzpicture}
+  \begin{groupplot}[%
+      ,group style={group size = 2 by 1, horizontal sep=0.26\textwidth, vertical sep=0.2\textwidth}
+      ,width=0.3\textwidth
+      ,height=0.2\textwidth
+      ,xlabel={$\delta$} % do not put text in $$
+      ,ylabel={$M_{\delta}(I(.))$}
+  ]
+  \nextgroupplot[%
+    ,title={Facebook dataset}
+    ,legend style={draw=black}
+    % ,legend to name=grouplegend
+    ,legend pos=outer north east
+  ]
+  \addlegendentry{\footnotesize{\infprobheu}}
+  \addplot [black, dashed, mark=x]
+    table [x index=0, y index=1] {data/muldel_fb.dat};
+  \addplot [black, dashed, mark=x, forget plot]
+    table [x index=0, y index=2] {data/muldel_fb.dat};
+  \addplot [black, dashed, mark=x, forget plot]
+    table [x index=0, y index=3] {data/muldel_fb.dat};
+
+  \addlegendentry{\footnotesize{\multicritalgo}}
+  \addplot [black, dotted, mark=o]
+    table [x index=0, y index=4] {data/muldel_fb.dat};
+  \addplot [black, dotted, mark=o]
+    table [x index=0, y index=5] {data/muldel_fb.dat};
+  \addplot [black, dotted, mark=o]
+    table [x index=0, y index=6] {data/muldel_fb.dat};
+
+   \nextgroupplot[
+     ,title={Twitter dataset}
+   ]
+   \addplot [black, dashed, mark=x]
+     table [x index=0, y index=1] {data/muldel_tw.dat};
+   \addplot [black, dashed, mark=x]
+     table [x index=0, y index=2] {data/muldel_tw.dat};
+   \addplot [black, dashed, mark=x]
+     table [x index=0, y index=3] {data/muldel_tw.dat};
+   \addplot [black, dotted, mark=o]
+     table [x index=0, y index=4] {data/muldel_tw.dat};
+   \addplot [black, dotted, mark=o]
+     table [x index=0, y index=5] {data/muldel_tw.dat};
+   \addplot [black, dotted, mark=o]
+     table [x index=0, y index=6] {data/muldel_tw.dat};
+
+  \end{groupplot}
+\end{tikzpicture}
+\end{center}
+% \begin{center}
+% \ref{grouplegend}
+% \end{center}
